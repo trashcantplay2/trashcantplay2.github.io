@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "myforfeit",
   "resources": {
-    "hash": "sha256-k7DsBXqhIoVegQ9tzox7zNOGcVwKgb5WJjbKt9dEE10=",
+    "hash": "sha256-gxhNC9hL/45l7gcctx6svGygF/Sg3UAxI8b6vcVFMHc=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-YDHEHpc+/PUWFYa9BMCN3EcVlpemjKD024swcpPfMIQ="
     },
@@ -210,10 +210,10 @@
       "mscorlib.wasm": "sha256-K9Dyt2y2qc5iOiFtzVJ54OrivbmVXDxkD16w+GkNz6Y=",
       "netstandard.wasm": "sha256-cdbfmZR3ZtA/HeSPpbwrUoRjB1vl4OgPSKGeGSmtiug=",
       "System.Private.CoreLib.wasm": "sha256-naY/8zY/5LD24ypcNRlECeSByBMi44aNk+g16oi63Mc=",
-      "myforfeit.wasm": "sha256-Q31v2eeQBFineMewKDeLicK4XuC1uTL5c2+MIzbbEGk="
+      "myforfeit.wasm": "sha256-UnhkErhTeOlnyzfXJHHhcNIiF7kdL6/WDZB423HLtV4="
     },
     "pdb": {
-      "myforfeit.pdb": "sha256-u7q4H2IHEa3PaMNRwGohVwVly8Q76uZp6HKbbMUNX6A="
+      "myforfeit.pdb": "sha256-wKTZH+ba/1mhHNyr3wEPc6H8fvW9QvSDs29Z6rH7Da8="
     }
   },
   "cacheBootResources": true,
