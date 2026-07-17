@@ -1,0 +1,151 @@
+﻿@page "/pomodoro"
+@inject ILocalStorageService LocalStorage
+@implements IDisposable
+
+<PageTitle>Pomodoro Timer</PageTitle>
+
+<div class="container mt-4" style="max-width: 600px;">
+    <h1 class="mb-4">🍅 Pomodoro Timer</h1>
+
+    <div class="card p-4 mb-4 shadow-sm border-info">
+        <h5 class="card-title">Current Task</h5>
+        <div class="mb-3">
+            <input @bind="taskName" class="form-control form-control-lg" placeholder="What are you working on?" />
+        </div>
+        
+        <div class="text-center mb-4">
+            <h2 class="display-3 fw-bold">@TimeDisplay</h2>
+        </div>
+
+        <div class="d-grid gap-2">
+            @if (!isRunning)
+            {
+                <button class="btn btn-success btn-lg" @onclick="StartTimer">Start</button>
+            }
+            else
+            {
+                <button class="btn btn-danger btn-lg" @onclick="StopAndResetTimer">Stop & Reset</button> @* Changed button text *@
+            }
+            @* Reset button removed *@
+        </div>
+    </div>
+
+    <div class="card p-4 mb-4 shadow-sm border-secondary">
+        <h5 class="card-title d-flex justify-content-between align-items-center">
+            Task History
+            <button class="btn btn-sm btn-outline-danger" @onclick="ClearAllRecords">Clear All</button>
+        </h5>
+        @if (records == null || !records.Any())
+        {
+            <p class="text-muted">No tasks recorded yet.</p>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var record in records.OrderByDescending(r => r.StartTime))
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center"> @* Added d-flex for alignment *@
+                        <div>
+                            <strong>@record.TaskName</strong>
+                            <br />
+                            <small class="text-muted">
+                                Started: @record.StartTime.ToString("MMM dd, hh:mm:ss tt")
+                                <br />
+                                Ended: @record.EndTime.ToString("MMM dd, hh:mm:ss tt")
+                                <br />
+                                Duration: @record.Duration.ToString(@"hh\:mm\:ss")
+                            </small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteRecord(record)">Delete</button> @* Individual Delete button *@
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>
+
+@code {
+    private string taskName = "";
+    private bool isRunning = false;
+    private DateTime sessionStartTime;
+    private TimeSpan elapsedTime = TimeSpan.Zero;
+    private System.Timers.Timer? _timer;
+
+    private List<PomodoroRecord>? records;
+
+    private string TimeDisplay => elapsedTime.ToString(@"hh\:mm\:ss");
+
+    protected override async Task OnInitializedAsync()
+    {
+        _timer = new System.Timers.Timer(1000);
+        _timer.Elapsed += (sender, e) => InvokeAsync(UpdateTimer);
+
+        records = await LocalStorage.GetItemAsync<List<PomodoroRecord>>("pomodoroRecords") ?? new List<PomodoroRecord>();
+    }
+
+    private void StartTimer()
+    {
+        if (!isRunning)
+        {
+            sessionStartTime = DateTime.Now - elapsedTime;
+            _timer?.Start();
+            isRunning = true;
+        }
+    }
+
+    private async Task StopAndResetTimer() @* Renamed method *@
+    {
+        if (isRunning)
+        {
+            _timer?.Stop();
+            isRunning = false;
+            
+            // Record the session before resetting
+            if (elapsedTime > TimeSpan.Zero)
+            {
+                records?.Add(new PomodoroRecord
+                {
+                    TaskName = string.IsNullOrWhiteSpace(taskName) ? "Untitled Task" : taskName,
+                    StartTime = sessionStartTime,
+                    EndTime = DateTime.Now // EndTime is when the stop button is pressed
+                });
+                await SaveRecords();
+            }
+
+            // Now reset the timer and task name
+            elapsedTime = TimeSpan.Zero;
+            taskName = "";
+        }
+    }
+
+    private void UpdateTimer()
+    {
+        if (isRunning)
+        {
+            elapsedTime = DateTime.Now - sessionStartTime;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveRecords()
+    {
+        await LocalStorage.SetItemAsync("pomodoroRecords", records);
+    }
+
+    private async Task ClearAllRecords()
+    {
+        records?.Clear();
+        await SaveRecords();
+    }
+
+    private async Task DeleteRecord(PomodoroRecord recordToDelete) @* New method for individual deletion *@
+    {
+        records?.Remove(recordToDelete);
+        await SaveRecords();
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

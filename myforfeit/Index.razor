@@ -7,8 +7,26 @@
 <div class="container mt-4" style="max-width: 800px;">
     <h1 class="mb-4">💰 My Forfeit</h1>
 
-    <div class="card p-3 mb-4 shadow-sm border-success text-center">
-        <h5 class="card-title mb-0">Total: <span class="text-success">$@totalFulfilledStakes</span></h5>
+    @* Horizontal Progress Bar for Stakes *@
+    <div class="card p-3 mb-4 shadow-sm">
+        <h5 class="card-title text-center mb-2">Stakes Overview</h5>
+        <div class="d-flex w-100 bg-light rounded overflow-hidden" style="height: 40px;">
+            @if (totalStakes > 0)
+            {
+                <div class="bg-success d-flex align-items-center justify-content-center text-white fw-bold" 
+                     style="width: @(totalFulfilledStakes * 100.0 / totalStakes)%;">
+                    @if (totalFulfilledStakes > 0) { <span>$@totalFulfilledStakes</span> }
+                </div>
+                <div class="bg-danger d-flex align-items-center justify-content-center text-white fw-bold" 
+                     style="width: @(totalPendingStakes * 100.0 / totalStakes)%;">
+                    @if (totalPendingStakes > 0) { <span>$@totalPendingStakes</span> }
+                </div>
+            }
+            else
+            {
+                <div class="w-100 d-flex align-items-center justify-content-center text-muted">No stakes yet</div>
+            }
+        </div>
     </div>
 
     <div class="card p-4 mb-4 shadow-sm border-primary">
@@ -62,7 +80,7 @@
                             }
                             <p class="mb-1">
                                 <span class="badge bg-dark">$@contract.Stakes</span>
-                                <span class="ms-2 text-muted">Deadline: @contract.Deadline.ToString("MMM dd, HH:mm")</span> @* Changed format to remove year *@
+                                <span class="ms-2 text-muted">Deadline: @contract.Deadline.ToString("MMM dd, hh:mm tt")</span>
                             </p>
                         </div>
                         <div class="btn-group">
@@ -86,9 +104,11 @@
 @code {
     private List<Contract>? contracts;
     private string newTitle = "";
-    private DateTime newDeadline = DateTime.Now.AddDays(1);
+    private DateTime newDeadline = DateTime.Today.AddHours(23).AddMinutes(59); // Default to 11:59 PM today
     private int newStakes = 5;
-    private int totalFulfilledStakes = 0; // New property for total fulfilled stakes
+    private int totalFulfilledStakes = 0;
+    private int totalPendingStakes = 0;
+    private int totalStakes => totalFulfilledStakes + totalPendingStakes;
 
     private System.Timers.Timer? _timer;
 
@@ -97,9 +117,9 @@
         contracts = await LocalStorage.GetItemAsync<List<Contract>>("contracts") ?? new List<Contract>();
         
         await CheckViolations();
-        CalculateTotalFulfilledStakes(); // Calculate on initialization
+        CalculateStakesTotals();
 
-        _timer = new System.Timers.Timer(1000); // Update every 1 second
+        _timer = new System.Timers.Timer(1000);
         _timer.Elapsed += async (sender, e) => await InvokeAsync(StateHasChanged);
         _timer.Start();
     }
@@ -123,6 +143,7 @@
         await Save();
         newTitle = "";
         newStakes = 5;
+        newDeadline = DateTime.Today.AddHours(23).AddMinutes(59); // Reset default to 11:59 PM today
     }
 
     private async Task Complete(Contract c)
@@ -140,12 +161,13 @@
     private async Task Save()
     {
         await LocalStorage.SetItemAsync("contracts", contracts);
-        CalculateTotalFulfilledStakes(); // Recalculate after any save operation
+        CalculateStakesTotals();
     }
 
-    private void CalculateTotalFulfilledStakes()
+    private void CalculateStakesTotals()
     {
         totalFulfilledStakes = contracts?.Where(c => c.IsCompleted).Sum(c => c.Stakes) ?? 0;
+        totalPendingStakes = contracts?.Where(c => !c.IsCompleted).Sum(c => c.Stakes) ?? 0;
     }
 
     private async Task CheckViolations()
@@ -155,8 +177,6 @@
         bool changed = false;
         foreach (var c in contracts.Where(c => IsViolated(c) && !c.NotificationSent))
         {
-            // Removed Telegram message sending logic
-            // For now, just mark as notified to prevent repeated "violations"
             c.NotificationSent = true; 
             changed = true;
         }
