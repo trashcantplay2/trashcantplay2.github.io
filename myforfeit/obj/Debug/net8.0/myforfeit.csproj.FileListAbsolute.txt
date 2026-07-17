@@ -1036,6 +1036,6 @@ C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\refint\
 C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\myforfeit.pdb
 C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\ref\myforfeit.dll
 C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\myforfeit.sourcelink.json
-C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\compressed\5seeesut3c-{0}-bnu74gw64m-bnu74gw64m.gz
-C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\compressed\369soy8722-{0}-73uechm5vi-73uechm5vi.gz
-C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\compressed\kzgxrr4vro-{0}-0la7cvcy3n-0la7cvcy3n.gz
+C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\compressed\5seeesut3c-{0}-2l1j2iyrmp-2l1j2iyrmp.gz
+C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\compressed\369soy8722-{0}-xy0hxxpzc5-xy0hxxpzc5.gz
+C:\Users\hobbies\Documents\web_apps\myforfeit\myforfeit\obj\Debug\net8.0\compressed\kzgxrr4vro-{0}-puroba14n8-puroba14n8.gz
