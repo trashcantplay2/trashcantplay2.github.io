@@ -2,13 +2,13 @@
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ] # Or 'master' if that's your primary branch
 
 # Add this permissions block
 permissions:
-  contents: write
-  pages: write # Required for GitHub Pages deployment
-  id-token: write # Required for GitHub Pages deployment
+  contents: write # This is crucial for the deploy action to push files
+  pages: write    # Required for GitHub Pages deployment
+  id-token: write # Required for GitHub Pages deployment (especially with OIDC)
 
 jobs:
   deploy:
@@ -37,4 +37,4 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: release/wwwroot
-          branch: gh-pages
+          branch: gh-pages # This is the branch the action will push to
