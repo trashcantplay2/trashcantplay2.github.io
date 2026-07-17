@@ -23,8 +23,9 @@ jobs:
       - name: Publish app
         run: dotnet publish myforfeit/myforfeit.csproj -c Release -o myforfeit/release # Output to myforfeit/release
 
-      - name: Change base-tag in index.html from / to myforfeit
-        run: sed -i 's/<base href="\/" \/>/<base href="\/myforfeit\/" \/>/g' myforfeit/release/wwwroot/index.html
+      # REMOVED: The sed command is no longer needed
+      # - name: Change base-tag in index.html from / to myforfeit
+      #   run: sed -i 's/<base href="\/" \/>/<base href="\/myforfeit\/" \/>/g' myforfeit/release/wwwroot/index.html
 
       - name: Copy index.html to 404.html
         run: cp myforfeit/release/wwwroot/index.html myforfeit/release/wwwroot/404.html
@@ -35,5 +36,6 @@ jobs:
       - name: Commit and Push to gh-pages branch
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: myforfeit/release/wwwroot # Corrected path here
+          folder: myforfeit/release/wwwroot
           branch: gh-pages
+          base_url: /myforfeit/ # ADDED: This will correctly set the base href
