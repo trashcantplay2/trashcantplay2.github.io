@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject ILocalStorageService LocalStorage
 @inject TelegramService Telegram
+@implements IDisposable
 
 <PageTitle>My Forfeit</PageTitle>
 
@@ -68,6 +69,12 @@
                             <p class="mb-1">
                                 <span class="badge bg-dark">$@contract.Stakes</span>
                                 <span class="ms-2 text-muted">Deadline: @contract.Deadline.ToString("f")</span>
+                                @if (!contract.IsCompleted)
+                                {
+                                    <span class="ms-2 badge @(GetTimeRemaining(contract.Deadline).TotalSeconds <= 0 ? "bg-danger" : "bg-info")">
+                                        @FormatTimeRemaining(contract.Deadline)
+                                    </span>
+                                }
                             </p>
                         </div>
                         <div class="btn-group">
@@ -97,6 +104,8 @@
     private string botToken = "";
     private string chatId = "";
 
+    private System.Timers.Timer? _timer;
+
     protected override async Task OnInitializedAsync()
     {
         contracts = await LocalStorage.GetItemAsync<List<Contract>>("contracts") ?? new List<Contract>();
@@ -104,6 +113,10 @@
         chatId = await LocalStorage.GetItemAsync<string>("tg_chatid") ?? "";
         
         await CheckViolations();
+
+        _timer = new System.Timers.Timer(1000); // Update every 1 second
+        _timer.Elapsed += async (sender, e) => await InvokeAsync(StateHasChanged);
+        _timer.Start();
     }
 
     private bool IsViolated(Contract c) => !c.IsCompleted && DateTime.Now > c.Deadline;
@@ -168,5 +181,42 @@
         }
 
         if (changed) await Save();
+    }
+
+    private TimeSpan GetTimeRemaining(DateTime deadline)
+    {
+        return deadline - DateTime.Now;
+    }
+
+    private string FormatTimeRemaining(DateTime deadline)
+    {
+        var timeRemaining = GetTimeRemaining(deadline);
+
+        if (timeRemaining.TotalSeconds <= 0)
+        {
+            return "OVERDUE";
+        }
+
+        if (timeRemaining.TotalDays >= 1)
+        {
+            return $"{timeRemaining.Days}d {timeRemaining.Hours}h {timeRemaining.Minutes}m";
+        }
+        else if (timeRemaining.TotalHours >= 1)
+        {
+            return $"{timeRemaining.Hours}h {timeRemaining.Minutes}m {timeRemaining.Seconds}s";
+        }
+        else if (timeRemaining.TotalMinutes >= 1)
+        {
+            return $"{timeRemaining.Minutes}m {timeRemaining.Seconds}s";
+        }
+        else
+        {
+            return $"{timeRemaining.Seconds}s";
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 }
