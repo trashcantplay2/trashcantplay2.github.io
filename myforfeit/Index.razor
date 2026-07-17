@@ -66,7 +66,7 @@
     else
     {
         <div class="list-group">
-            @foreach (var contract in contracts.OrderBy(c => c.Deadline))
+            @foreach (var contract in contracts.OrderBy(c => c.IsCompleted).ThenBy(c => c.Deadline)) @* Changed sorting *@
             {
                 <div class="list-group-item list-group-item-action @(IsViolated(contract) ? "list-group-item-danger" : (contract.IsCompleted ? "bg-light" : ""))">
                     <div class="d-flex w-100 justify-content-between align-items-center">
@@ -104,7 +104,7 @@
 @code {
     private List<Contract>? contracts;
     private string newTitle = "";
-    private DateTime newDeadline = DateTime.Today.AddHours(23).AddMinutes(59); // Default to 11:59 PM today
+    private DateTime newDeadline = DateTime.Today.AddHours(23).AddMinutes(59);
     private int newStakes = 5;
     private int totalFulfilledStakes = 0;
     private int totalPendingStakes = 0;
@@ -143,7 +143,7 @@
         await Save();
         newTitle = "";
         newStakes = 5;
-        newDeadline = DateTime.Today.AddHours(23).AddMinutes(59); // Reset default to 11:59 PM today
+        newDeadline = DateTime.Today.AddHours(23).AddMinutes(59);
     }
 
     private async Task Complete(Contract c)

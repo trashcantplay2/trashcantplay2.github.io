@@ -2,34 +2,46 @@
 @using Microsoft.AspNetCore.Components.Routing
 
 <div class="page">
-    <div class="sidebar">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark flex-column align-items-stretch">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="/">My Forfeit</a>
-                <div class="collapse navbar-collapse show">
-                    <ul class="navbar-nav flex-column">
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
-                                <span class="oi oi-list-rich" aria-hidden="true"></span> Contracts
-                            </NavLink>
-                        </li>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="/pomodoro">
-                                <span class="oi oi-timer" aria-hidden="true"></span> Pomodoro
-                            </NavLink>
-                        </li>
-                    </ul>
-                </div>
+    <div class="sidebar @(showSidebar ? "show" : "")">
+        <nav class="navbar navbar-dark bg-dark flex-column align-items-stretch h-100">
+            <div class="container-fluid d-flex flex-column align-items-start">
+                <a class="navbar-brand py-3" href="/">My Forfeit</a>
+                <ul class="navbar-nav flex-column w-100">
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/" Match="NavLinkMatch.All" @onclick="ToggleSidebar">
+                            <span class="oi oi-list-rich" aria-hidden="true"></span> Contracts
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/pomodoro" @onclick="ToggleSidebar">
+                            <span class="oi oi-timer" aria-hidden="true"></span> Pomodoro
+                        </NavLink>
+                    </li>
+                </ul>
             </div>
         </nav>
     </div>
 
-    <main>
-        <article class="content px-4">
+    <main class="content @(showSidebar ? "shifted" : "")">
+        <div class="top-bar">
+            <button class="navbar-toggler" @onclick="ToggleSidebar">
+                <span class="oi oi-menu"></span>
+            </button>
+        </div>
+        <article class="px-4">
             @Body
         </article>
     </main>
 </div>
+
+@code {
+    private bool showSidebar = false;
+
+    private void ToggleSidebar()
+    {
+        showSidebar = !showSidebar;
+    }
+}
 
 <style>
     .sidebar {
@@ -37,9 +49,15 @@
         height: 100vh;
         position: fixed;
         top: 0;
-        left: 0;
+        left: -200px; /* Initially hidden */
         background-color: #343a40; /* Dark background for sidebar */
-        padding-top: 1rem;
+        transition: left 0.3s ease-in-out; /* Smooth transition */
+        z-index: 1000; /* Ensure it's above other content */
+        box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+    }
+
+    .sidebar.show {
+        left: 0; /* Show sidebar */
     }
 
     .sidebar .navbar-brand {
@@ -65,7 +83,33 @@
     }
 
     .content {
-        margin-left: 200px; /* Offset content by sidebar width */
+        margin-left: 0; /* Initially no margin */
         padding-top: 1rem;
+        transition: margin-left 0.3s ease-in-out; /* Smooth transition */
+    }
+
+    .content.shifted {
+        margin-left: 200px; /* Shift content when sidebar is open */
+    }
+
+    .top-bar {
+        background-color: #f8f9fa; /* Light background for top bar */
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .navbar-toggler {
+        border: none;
+        background-color: transparent;
+        color: #343a40; /* Dark color for hamburger icon */
+        font-size: 1.5rem;
+        padding: 0;
+    }
+
+    .navbar-toggler:focus {
+        box-shadow: none;
     }
 </style>
