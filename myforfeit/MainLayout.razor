@@ -2,114 +2,60 @@
 @using Microsoft.AspNetCore.Components.Routing
 
 <div class="page">
-    <div class="sidebar @(showSidebar ? "show" : "")">
-        <nav class="navbar navbar-dark bg-dark flex-column align-items-stretch h-100">
-            <div class="container-fluid d-flex flex-column align-items-start">
-                <a class="navbar-brand py-3" href="/">My Forfeit</a>
-                <ul class="navbar-nav flex-column w-100">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"></a>
+            <div class="collapse navbar-collapse show">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="/" Match="NavLinkMatch.All" @onclick="ToggleSidebar">
-                            <span class="oi oi-list-rich" aria-hidden="true"></span> Contracts
+                        <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                            <span aria-hidden="true">💰</span>
                         </NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="/pomodoro" @onclick="ToggleSidebar">
-                            <span class="oi oi-timer" aria-hidden="true"></span> Pomodoro
+                        <NavLink class="nav-link" href="/pomodoro">
+                            <span aria-hidden="true">🍅</span>
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/temptations">
+                            <span aria-hidden="true">😈</span>
                         </NavLink>
                     </li>
                 </ul>
             </div>
-        </nav>
-    </div>
-
-    <main class="content @(showSidebar ? "shifted" : "")">
-        <div class="top-bar">
-            <button class="navbar-toggler" @onclick="ToggleSidebar">
-                <span class="oi oi-menu"></span>
-            </button>
         </div>
-        <article class="px-4">
+    </nav>
+
+    <main>
+        <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
 
 @code {
-    private bool showSidebar = false;
-
-    private void ToggleSidebar()
-    {
-        showSidebar = !showSidebar;
-    }
+    // showSidebar and ToggleSidebar removed
 }
 
 <style>
-    .sidebar {
-        width: 200px;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: -200px; /* Initially hidden */
-        background-color: #343a40; /* Dark background for sidebar */
-        transition: left 0.3s ease-in-out; /* Smooth transition */
-        z-index: 1000; /* Ensure it's above other content */
-        box-shadow: 2px 0 5px rgba(0,0,0,0.5);
-    }
-
-    .sidebar.show {
-        left: 0; /* Show sidebar */
-    }
-
-    .sidebar .navbar-brand {
-        color: white;
-        padding-left: 1rem;
-        padding-right: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .sidebar .nav-link {
-        color: rgba(255, 255, 255, 0.75);
-        padding: 0.5rem 1rem;
-    }
-
-    .sidebar .nav-link.active {
-        color: white;
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .sidebar .nav-link:hover {
-        color: white;
-        background-color: rgba(255, 255, 255, 0.05);
-    }
+    /* Removed all sidebar-related styles */
 
     .content {
-        margin-left: 0; /* Initially no margin */
-        padding-top: 1rem;
-        transition: margin-left 0.3s ease-in-out; /* Smooth transition */
+        padding-top: 70px; /* Adjust content padding to account for fixed top navbar height */
     }
 
-    .content.shifted {
-        margin-left: 200px; /* Shift content when sidebar is open */
+    .navbar-brand {
+        font-weight: bold;
     }
 
-    .top-bar {
-        background-color: #f8f9fa; /* Light background for top bar */
-        padding: 0.5rem 1rem;
-        border-bottom: 1px solid #dee2e6;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
+    .navbar-nav .nav-link {
+        font-size: 1.5rem; /* Larger emojis */
+        padding: 0.5rem 0.75rem;
     }
 
-    .navbar-toggler {
-        border: none;
-        background-color: transparent;
-        color: #343a40; /* Dark color for hamburger icon */
-        font-size: 1.5rem;
-        padding: 0;
-    }
-
-    .navbar-toggler:focus {
-        box-shadow: none;
+    .navbar-nav .nav-link.active {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
     }
 </style>
