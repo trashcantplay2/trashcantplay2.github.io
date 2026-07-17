@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "myforfeit",
   "resources": {
-    "hash": "sha256-DbNA7KQm24STDiLznT440ocmMn5O8x7RtUD0VpaAdgs=",
+    "hash": "sha256-WlViUu6HpeD0It4ZPL15xGN0TjEEvV5J4i+bGlVuEtw=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-YDHEHpc+/PUWFYa9BMCN3EcVlpemjKD024swcpPfMIQ="
     },
@@ -50,7 +50,7 @@
       "System.Text.RegularExpressions.wasm": "sha256-NnTQVRAfzBr6A7Rua36Lvunnot1gwR4TTqvz8U0fy1w=",
       "System.Threading.wasm": "sha256-aijIo9C3m+brvr2pAaUBxq74zX2hzPEvgojYtbaKHSE=",
       "System.Private.CoreLib.wasm": "sha256-48vZKs5tqRxx35tpnFfOkMV7z4214B1ZWJKU/jT4jFE=",
-      "myforfeit.wasm": "sha256-onbung3cCxsETuLyF1YYDofQv0qWRhM1UQnHd3SJ6Zo="
+      "myforfeit.wasm": "sha256-ogCg1hJYVWyvmV/G6LnTu74Fk0JDtjEfii3m7fliFvs="
     }
   },
   "cacheBootResources": true,
