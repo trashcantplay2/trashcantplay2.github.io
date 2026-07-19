@@ -7,8 +7,10 @@
     <h1 class="mb-4">😈 Temptation Tracker</h1>
 
     <div class="card p-4 mb-4 shadow-sm border-warning">
+        @* "Record a temptation" text removed *@
         
         <div class="mb-3">
+            @* "Common Temptations" text removed *@
             <div class="d-flex flex-wrap gap-2">
                 @foreach (var temp in predefinedTemptations)
                 {
@@ -18,17 +20,19 @@
         </div>
 
         <div class="mb-3">
+            @* "Or Add Your Own" text removed *@
             <div class="input-group">
-                <input @bind="customTemptationName" class="form-control" placeholder="e.g., Procrastinating, Buying unnecessary things" />
+                <input @bind="customTemptationName" class="form-control" placeholder="Add your own..." @onkeyup="HandleCustomInputKeyUp" />
                 <button class="btn btn-warning" @onclick="AddCustomTemptation">Add</button>
             </div>
         </div>
     </div>
 
     <div class="card p-4 mb-4 shadow-sm border-secondary">
-        <h5 class="card-title d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-end align-items-center mb-2">
+            @* "Your Temptation Log" text removed, Clear All button moved to the right *@
             <button class="btn btn-sm btn-outline-danger" @onclick="ClearAllTemptations">Clear All</button>
-        </h5>
+        </div>
         @if (trackedTemptations == null || !trackedTemptations.Any())
         {
             <p class="text-muted">No temptations logged yet.</p>
@@ -38,22 +42,23 @@
             <ul class="list-group">
                 @foreach (var temptation in trackedTemptations.OrderByDescending(t => t.Count).ThenBy(t => t.Name))
                 {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>@temptation.Name</strong>
-                            <br />
-                            <small class="text-muted">
-                                @if (temptation.Timestamps.Any())
-                                {
-                                    <span>Times: @string.Join(", ", temptation.Timestamps.Select(ts => ts.ToString("hh:mm tt")))</span>
-                                }
-                                else
-                                {
-                                    <span>No times recorded yet.</span>
-                                }
-                            </small>
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">@temptation.Name</h6>
+                            <span class="badge bg-danger rounded-pill">@temptation.Count</span>
                         </div>
-                        <span class="badge bg-danger rounded-pill">@temptation.Count</span>
+                        <ul class="list-unstyled mt-2">
+                            @foreach (var occurrence in temptation.Occurrences.OrderByDescending(o => o.Timestamp))
+                            {
+                                <li class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+                                    <small class="text-muted">@occurrence.Timestamp.ToString("MMM dd, hh:mm tt")</small>
+                                    <div class="input-group input-group-sm w-50">
+                                        <input type="text" class="form-control" placeholder="Add a comment..." value="@occurrence.Comment" 
+                                               @onchange="(e) => { occurrence.Comment = e.Value.ToString(); SaveTemptations(); }" />
+                                    </div>
+                                </li>
+                            }
+                        </ul>
                     </li>
                 }
             </ul>
@@ -64,7 +69,7 @@
 @code {
     private List<string> predefinedTemptations = new List<string>
     {
-        "Reddit", "YouTube", "Internet Browsing", "Breaking Fast", "Ordering Takeout", "Procrastination", "Gaming", "Watching TV/Videos"
+        "Reddit", "YouTube", "Eating/Buying Takeout", "Internet Browsing", "Breaking Fast"
     };
 
     private string customTemptationName = "";
@@ -79,17 +84,18 @@
     {
         var existing = trackedTemptations?.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         
-        // Get current time, truncated to hour and minute
         var now = DateTime.Now;
         var recordTime = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0);
 
         if (existing != null)
         {
-            existing.Timestamps.Add(recordTime);
+            existing.Occurrences.Add(new TemptationOccurrence { Timestamp = recordTime });
         }
         else
         {
-            trackedTemptations?.Add(new TemptationEntry { Name = name, Timestamps = new List<DateTime> { recordTime } });
+            var newEntry = new TemptationEntry { Name = name };
+            newEntry.Occurrences.Add(new TemptationOccurrence { Timestamp = recordTime });
+            trackedTemptations?.Add(newEntry);
         }
         await SaveTemptations();
     }
@@ -99,7 +105,15 @@
         if (!string.IsNullOrWhiteSpace(customTemptationName))
         {
             await RecordTemptation(customTemptationName.Trim());
-            customTemptationName = ""; // Clear input after adding
+            customTemptationName = "";
+        }
+    }
+
+    private async Task HandleCustomInputKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await AddCustomTemptation();
         }
     }
 
