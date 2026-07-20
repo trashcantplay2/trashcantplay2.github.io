@@ -1,0 +1,264 @@
+﻿@page "/forest"
+@inject ILocalStorageService LocalStorage
+@implements IDisposable
+
+<PageTitle>Deep Focus</PageTitle>
+
+<div class="container mt-4" style="max-width: 800px;">
+    <h1 class="mb-4 text-center">🌳 Deep Focus</h1>
+
+    @if (currentTree == null)
+    {
+        <div class="card p-4 mb-4 shadow-sm border-success">
+            @* Texts removed *@
+
+            <!-- Plant Selection -->
+            <div class="mb-3 text-center">
+                <h6>Choose Your Plant</h6>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    @foreach (var plant in availablePlants)
+                    {
+                        <button class="btn plant-selector @(selectedPlant == plant.Key ? "selected" : "")" @onclick="() => selectedPlant = plant.Key">
+                            @plant.Key
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Duration Selection -->
+            <div class="mb-3 text-center">
+                <div class="d-flex justify-content-center gap-2 mb-2 flex-wrap">
+                    @foreach (var duration in availableDurations)
+                    {
+                        <button class="btn @(selectedDuration.TotalMinutes == duration && customMinutes == null ? "btn-success" : "btn-outline-success")" @onclick="() => SetDuration(duration)">
+                            @duration
+                        </button>
+                    }
+                </div>
+                <div class="input-group" style="max-width: 200px; margin: auto;">
+                    <input type="number" class="form-control" placeholder="Custom" @bind="customMinutes" @bind:event="oninput" />
+                    <span class="input-group-text">min</span>
+                </div>
+            </div>
+
+            <div class="d-grid mt-3">
+                <button class="btn btn-lg btn-success" @onclick="PlantTree" disabled="@(customMinutes <= 0)">Plant!</button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card p-4 mb-4 shadow-sm @(currentTree.State == TreeState.Withered ? "border-danger" : "border-info")">
+            <h5 class="card-title text-center">
+                @if (currentTree.State == TreeState.Growing) { <span>@(currentTree.IsPaused ? "Paused" : "Keep Going!")</span> }
+                @if (currentTree.State == TreeState.Grown) { <span>You did it!</span> }
+                @if (currentTree.State == TreeState.Withered) { <span>Oh no!</span> }
+            </h5>
+            <div class="text-center my-4">
+                <span class="tree-display">
+                    @if (currentTree.State == TreeState.Growing) { <span>@GetSaplingForPlant(currentTree.PlantType)</span> }
+                    @if (currentTree.State == TreeState.Grown) { <span>@currentTree.PlantType</span> }
+                    @if (currentTree.State == TreeState.Withered) { <span>🥀</span> }
+                </span>
+                <h2 class="display-4 fw-bold">@TimeRemainingDisplay</h2>
+            </div>
+            @if (currentTree.State == TreeState.Growing)
+            {
+                <div class="d-grid gap-2">
+                    @if (currentTree.IsPaused)
+                    {
+                        <button class="btn btn-info" @onclick="ResumeTimer">Resume</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-warning" @onclick="PauseTimer">Pause</button>
+                    }
+                    <button class="btn btn-danger" @onclick="GiveUp">Give Up</button>
+                </div>
+            }
+            else
+            {
+                <div class="d-grid">
+                    <button class="btn btn-secondary" @onclick="ClearCurrentTree">Back to Forest</button>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="card-title mb-0">Your Forest</h5>
+            <button class="btn btn-sm btn-outline-danger" @onclick="ClearForest">Clear Forest</button>
+        </div>
+        <div class="forest-display">
+            @if (forest.Any())
+            {
+                @foreach (var tree in forest.OrderBy(t => t.PlantedAt))
+                {
+                    <span class="grown-tree" title="Grown on @tree.PlantedAt.ToString("MMM dd") for @tree.Duration.TotalMinutes mins">@tree.PlantType</span>
+                }
+            }
+            else
+            {
+                <p class="text-muted">Your forest is empty. Plant a tree to get started!</p>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .tree-display { font-size: 5rem; }
+    .forest-display { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .grown-tree { font-size: 2rem; cursor: default; }
+    .plant-selector { font-size: 2rem; border: 2px solid transparent; border-radius: 10px; }
+    .plant-selector.selected { border-color: #198754; background-color: #d1e7dd; }
+</style>
+
+@code {
+    private readonly Dictionary<string, string> availablePlants = new()
+    {
+        { "🌳", "🌱" }, { "🌲", "🌿" }, { "🌴", "🌱" }, { "🍁", "🌿" },
+        { "🌸", "🌷" }, { "🌻", "🌷" }, { "🌹", "🌷" }, { "🌺", "🌷" },
+        { "🍄", "🍄" }, { "🌵", "🌵" }, { "🌾", "🌿" }, { "🍀", "🌿" }
+    };
+    private string selectedPlant = "🌳";
+
+    private readonly List<int> availableDurations = new() { 10, 15, 25, 30, 45, 50 };
+    private TimeSpan selectedDuration = TimeSpan.FromMinutes(25);
+    private int? customMinutes;
+
+    private Tree? currentTree;
+    private List<Tree> forest = new();
+    private Timer? focusTimer;
+    private TimeSpan timeRemaining;
+
+    private string TimeRemainingDisplay => timeRemaining.ToString(@"mm\:ss");
+
+    protected override async Task OnInitializedAsync()
+    {
+        forest = await LocalStorage.GetItemAsync<List<Tree>>("forest") ?? new List<Tree>();
+        currentTree = await LocalStorage.GetItemAsync<Tree>("currentTree");
+
+        if (currentTree != null)
+        {
+            InitializeTimer();
+        }
+    }
+
+    private void InitializeTimer()
+    {
+        focusTimer = new Timer(async _ => await CheckFocusState(), null, 0, 1000);
+    }
+
+    private async Task CheckFocusState()
+    {
+        if (currentTree == null || currentTree.IsPaused) return;
+
+        var elapsed = (DateTime.Now - currentTree.PlantedAt) - currentTree.PausedDuration;
+        timeRemaining = currentTree.Duration - elapsed;
+
+        if (timeRemaining <= TimeSpan.Zero)
+        {
+            timeRemaining = TimeSpan.Zero;
+            if (currentTree.State == TreeState.Growing)
+            {
+                currentTree.State = TreeState.Grown;
+                forest.Add(currentTree);
+                await SaveForest();
+            }
+            focusTimer?.Dispose();
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task PlantTree()
+    {
+        var durationToSet = customMinutes.HasValue && customMinutes > 0
+            ? TimeSpan.FromMinutes(customMinutes.Value)
+            : selectedDuration;
+
+        currentTree = new Tree
+        {
+            PlantedAt = DateTime.Now,
+            Duration = durationToSet,
+            State = TreeState.Growing,
+            PlantType = selectedPlant
+        };
+        await SaveCurrentTree();
+        InitializeTimer();
+    }
+
+    private async Task PauseTimer()
+    {
+        if (currentTree != null && !currentTree.IsPaused)
+        {
+            currentTree.IsPaused = true;
+            currentTree.LastPausedAt = DateTime.Now;
+            focusTimer?.Dispose();
+            await SaveCurrentTree();
+        }
+    }
+
+    private async Task ResumeTimer()
+    {
+        if (currentTree != null && currentTree.IsPaused)
+        {
+            currentTree.IsPaused = false;
+            if (currentTree.LastPausedAt.HasValue)
+            {
+                currentTree.PausedDuration += DateTime.Now - currentTree.LastPausedAt.Value;
+            }
+            currentTree.LastPausedAt = null;
+            InitializeTimer();
+            await SaveCurrentTree();
+        }
+    }
+
+    private async Task GiveUp()
+    {
+        if (currentTree != null)
+        {
+            currentTree.State = TreeState.Withered;
+            await SaveCurrentTree();
+            focusTimer?.Dispose();
+        }
+    }
+
+    private async Task ClearCurrentTree()
+    {
+        currentTree = null;
+        await LocalStorage.RemoveItemAsync("currentTree");
+    }
+
+    private async Task ClearForest()
+    {
+        forest.Clear();
+        await SaveForest();
+    }
+
+    private void SetDuration(int minutes)
+    {
+        customMinutes = null;
+        selectedDuration = TimeSpan.FromMinutes(minutes);
+    }
+
+    private string GetSaplingForPlant(string plantType)
+    {
+        return availablePlants.TryGetValue(plantType, out var sapling) ? sapling : "🌱";
+    }
+
+    private async Task SaveCurrentTree()
+    {
+        await LocalStorage.SetItemAsync("currentTree", currentTree);
+    }
+
+    private async Task SaveForest()
+    {
+        await LocalStorage.SetItemAsync("forest", forest);
+    }
+
+    public void Dispose()
+    {
+        focusTimer?.Dispose();
+    }
+}

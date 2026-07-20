@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("myforfeit")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8a187b15be41406dfcfaf17bb32e054f99bf5a34")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f8ccb8af82524f547afbee91545f932826a4ba2b")]
 [assembly: System.Reflection.AssemblyProductAttribute("myforfeit")]
 [assembly: System.Reflection.AssemblyTitleAttribute("myforfeit")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
